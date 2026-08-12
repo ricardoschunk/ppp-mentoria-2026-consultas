@@ -1,0 +1,113 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API de Consultas de Fisioterapia",
+    "version": "1.0.0",
+    "description": "Cadastro de pacientes, agendamento de sessões de uma hora e painel do fisioterapeuta."
+  },
+  "servers": [{ "url": "http://localhost:3000", "description": "Ambiente local" }],
+  "tags": [
+    { "name": "Pacientes" },
+    { "name": "Agendamentos" },
+    { "name": "Administração" },
+    { "name": "Infraestrutura" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Infraestrutura"], "summary": "Verifica a saúde da API",
+        "responses": { "200": { "description": "API disponível", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } } } } }
+      }
+    },
+    "/api/patients": {
+      "post": {
+        "tags": ["Pacientes"], "summary": "Cadastra um paciente e emite seu token",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PatientInput" } } } },
+        "responses": {
+          "201": { "description": "Paciente cadastrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PatientRegistrationResponse" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "description": "Telefone já cadastrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": { "code": "PHONE_ALREADY_REGISTERED", "message": "Telefone já cadastrado." } } } } }
+        }
+      }
+    },
+    "/api/appointments/available": {
+      "get": {
+        "tags": ["Agendamentos"], "summary": "Lista os horários disponíveis na data", "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "in": "query", "name": "date", "required": true, "schema": { "type": "string", "format": "date" }, "example": "2026-08-10" }],
+        "responses": {
+          "200": { "description": "Horários disponíveis", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AvailabilityResponse" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/appointments": {
+      "post": {
+        "tags": ["Agendamentos"], "summary": "Agenda uma consulta para o paciente autenticado", "security": [{ "bearerAuth": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AppointmentInput" } } } },
+        "responses": {
+          "201": { "description": "Consulta agendada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AppointmentResponse" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" },
+          "404": { "description": "Paciente do token não encontrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+          "409": { "description": "Horário já ocupado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": { "code": "TIME_UNAVAILABLE", "message": "Este horário não está disponível." } } } } }
+        }
+      }
+    },
+    "/api/appointments/mine": {
+      "get": {
+        "tags": ["Agendamentos"], "summary": "Lista os agendamentos do paciente autenticado", "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Agendamentos do paciente", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AppointmentListResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    },
+    "/api/admin/login": {
+      "post": {
+        "tags": ["Administração"], "summary": "Autentica o fisioterapeuta",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AdminLoginInput" } } } },
+        "responses": {
+          "200": { "description": "Login realizado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AdminLoginResponse" } } } },
+          "401": { "description": "Credenciais inválidas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": { "code": "INVALID_CREDENTIALS", "message": "Usuário ou senha inválidos." } } } } }
+        }
+      }
+    },
+    "/api/admin/appointments": {
+      "get": {
+        "tags": ["Administração"], "summary": "Lista todos os agendamentos", "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Todos os agendamentos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AppointmentListResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "403": { "$ref": "#/components/responses/Forbidden" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": { "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" } },
+    "responses": {
+      "ValidationError": { "description": "Dados inválidos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": { "code": "VALIDATION_ERROR", "message": "Dados inválidos." } } } } },
+      "Unauthorized": { "description": "Token ausente, inválido ou expirado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": { "code": "TOKEN_REQUIRED", "message": "Token de autenticação não informado." } } } } },
+      "Forbidden": { "description": "Perfil sem permissão", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" }, "example": { "error": { "code": "FORBIDDEN", "message": "Você não tem permissão para acessar este recurso." } } } } }
+    },
+    "schemas": {
+      "PatientInput": { "type": "object", "required": ["fullName", "phone"], "properties": { "fullName": { "type": "string", "example": "Maria da Silva" }, "phone": { "type": "string", "example": "+55 11 99999-9999" } } },
+      "Patient": { "type": "object", "required": ["id", "fullName", "phone", "createdAt"], "properties": { "id": { "type": "string", "format": "uuid" }, "fullName": { "type": "string" }, "phone": { "type": "string" }, "createdAt": { "type": "string", "format": "date-time" } } },
+      "PatientRegistrationResponse": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["patient", "token"], "properties": { "patient": { "$ref": "#/components/schemas/Patient" }, "token": { "type": "string", "description": "JWT do paciente" } } } } },
+      "AppointmentInput": { "type": "object", "required": ["date", "time"], "properties": { "date": { "type": "string", "format": "date", "example": "2026-08-10" }, "time": { "type": "string", "pattern": "^(0[7-9]|1[0-8]):00$", "example": "09:00" } } },
+      "Appointment": { "type": "object", "required": ["id", "patientId", "date", "time", "status", "createdAt"], "properties": { "id": { "type": "string", "format": "uuid" }, "patientId": { "type": "string", "format": "uuid" }, "date": { "type": "string", "format": "date" }, "time": { "type": "string", "example": "09:00" }, "status": { "type": "string", "enum": ["scheduled"] }, "createdAt": { "type": "string", "format": "date-time" } } },
+      "AppointmentWithPatient": { "allOf": [{ "$ref": "#/components/schemas/Appointment" }, { "type": "object", "required": ["patient"], "properties": { "patient": { "$ref": "#/components/schemas/Patient" } } }] },
+      "AppointmentResponse": { "type": "object", "required": ["data"], "properties": { "data": { "$ref": "#/components/schemas/Appointment" } } },
+      "AppointmentListResponse": { "type": "object", "required": ["data"], "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/AppointmentWithPatient" } } } },
+      "AvailabilityResponse": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["date", "times"], "properties": { "date": { "type": "string", "format": "date" }, "times": { "type": "array", "items": { "type": "string" }, "example": ["07:00", "08:00", "09:00"] } } } } },
+      "AdminLoginInput": { "type": "object", "required": ["username", "password"], "properties": { "username": { "type": "string", "example": "fisioterapeuta" }, "password": { "type": "string", "format": "password", "example": "admin123" } } },
+      "AdminLoginResponse": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["token", "tokenType", "role"], "properties": { "token": { "type": "string" }, "tokenType": { "type": "string", "enum": ["Bearer"] }, "role": { "type": "string", "enum": ["physiotherapist"] } } } } },
+      "HealthResponse": { "type": "object", "required": ["data"], "properties": { "data": { "type": "object", "required": ["status"], "properties": { "status": { "type": "string", "enum": ["ok"] } } } } },
+      "ErrorResponse": { "type": "object", "required": ["error"], "properties": { "error": { "type": "object", "required": ["code", "message"], "properties": { "code": { "type": "string" }, "message": { "type": "string" } } } } }
+    }
+  }
+}

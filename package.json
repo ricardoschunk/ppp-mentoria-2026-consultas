@@ -1,0 +1,31 @@
+{
+  "name": "ppp-mentoria-2026-consultas",
+  "version": "1.0.0",
+  "description": "API REST para cadastro de pacientes e agendamento de consultas de fisioterapia",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ricardoschunk/ppp-mentoria-2026-consultas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "bugs": {
+    "url": "https://github.com/ricardoschunk/ppp-mentoria-2026-consultas/issues"
+  },
+  "homepage": "https://github.com/ricardoschunk/ppp-mentoria-2026-consultas#readme"
+}
