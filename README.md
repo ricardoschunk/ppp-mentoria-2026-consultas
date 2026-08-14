@@ -82,6 +82,15 @@ Um token de paciente não acessa o painel administrativo, e um token administrat
 
 O contrato completo dos corpos JSON, parâmetros e status de sucesso e erro está em [`src/resources/swagger.json`](src/resources/swagger.json).
 
+## Documentação de testes
+
+A pasta [`docs`](docs) reúne os artefatos de planejamento e especificação dos testes do projeto:
+
+- [`docs/charters`](docs/charters): contém os test charters de Pacientes, Agendamentos e Administração, usados para orientar as sessões de testes exploratórios;
+- [`docs/test cases`](docs/test%20cases): contém os test cases detalhados, com os cenários de cadastro de paciente, validação de agendamento e visualização no painel administrativo.
+
+Os documentos estão no formato `.docx` e podem ser consultados antes da execução dos testes para entender o objetivo, o escopo e os resultados esperados de cada cenário.
+
 ## Exemplos
 
 Cadastro de paciente:
@@ -133,6 +142,9 @@ Erros usam o envelope `error`:
 ## Arquitetura
 
 ```text
+docs/
+├── charters/     # test charters para testes exploratórios
+└── test cases/   # casos de teste detalhados
 src/
 ├── controllers/  # traduz HTTP para chamadas de serviço
 ├── middlewares/  # autenticação, autorização e erros
